@@ -7,9 +7,6 @@ from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml.classification import LogisticRegression
 
 def evaluateModel(predictions, modelName="Model"):
-    """
-    Computes performance metrics.
-    """
     evaluator_acc = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
     evaluator_f1 = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="f1")
     evaluator_prec = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="weightedPrecision")
@@ -29,7 +26,6 @@ def evaluateModel(predictions, modelName="Model"):
     return acc, f1, prec, rec
 
 def saveEvaluationMetrics(acc, f1, prec, rec, modelName):
-    """Saves evaluation metrics to a JSON file."""
     metrics = {"accuracy": acc, "f1_score": f1, "precision": prec, "recall": rec}
     metrics_file = f"metrics_{modelName.replace(' ', '_')}.json"
     with open(metrics_file, "w") as f:
@@ -37,7 +33,6 @@ def saveEvaluationMetrics(acc, f1, prec, rec, modelName):
     print(f"Saved {modelName} evaluation metrics to {metrics_file}")
 
 def plotConfusionMatrix(predictions, indexer_labels, modelName="Model"):
-    """Generates and saves a confusion matrix heatmap."""
     conf_matrix_df = predictions.groupBy("label", "prediction").count().toPandas()
     
     num_classes = len(indexer_labels)
@@ -58,10 +53,6 @@ def plotConfusionMatrix(predictions, indexer_labels, modelName="Model"):
     print(f"Saved confusion matrix plot to '{fileName}'")
 
 def runScalabilityTests(spark, baseDf):
-    """
-    Trains LR model on different dataset sizes to measure scalability.
-    Plots Training Time vs Dataset Size.
-    """
     fractions = [0.1, 0.5, 1.0]
     times = []
     accuracies = []
@@ -69,7 +60,7 @@ def runScalabilityTests(spark, baseDf):
     for frac in fractions:
         print(f"\nRunning Scalability Test on {frac*100}% of data...")
         sampleDf = baseDf.sample(withReplacement=False, fraction=frac, seed=42).cache()
-        sampleDf.count() # Force action to cache
+        sampleDf.count()
         
         trainDf, testDf = sampleDf.randomSplit([0.8, 0.2], seed=42)
         
@@ -89,7 +80,6 @@ def runScalabilityTests(spark, baseDf):
         print(f"Time taken: {duration:.2f}s, Accuracy: {acc:.4f}")
         sampleDf.unpersist()
         
-    # Plot Scalability Results
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
     plt.plot([f * 100 for f in fractions], times, marker='o', linestyle='-', color='b')

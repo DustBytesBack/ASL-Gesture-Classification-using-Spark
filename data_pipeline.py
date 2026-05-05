@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image
 
-# Ensure executors use the same Python executable
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
@@ -19,7 +18,6 @@ from pyspark.ml.linalg import Vectors, VectorUDT
 from pyspark.sql.functions import udf
 
 def initSpark():
-    """Initializes and returns a SparkSession."""
     return SparkSession.builder \
         .appName("ASL Gesture Classification Pipeline") \
         .config("spark.driver.memory", "4g") \
@@ -28,22 +26,15 @@ def initSpark():
         .getOrCreate()
 
 def loadData(spark, dataPath):
-    """Loads image dataset using Spark's binaryFile data source."""
     print(f"Loading data from {dataPath}")
     df = spark.read.format("binaryFile").load(dataPath)
     return df
 
 def extractLabels(df):
-    """Extracts the class label from the file path into a new column."""
     return df.withColumn("label_str", regexp_extract(col("path"), r"([^/]+)/[^/]+\.jpe?g$", 1))
 
 @pandas_udf(ArrayType(FloatType()))
 def preprocessImageUdf(content_series: pd.Series) -> pd.Series:
-    """
-    Pandas UDF for distributed image preprocessing.
-    Reads binary content, converts to grayscale, resizes to 64x64,
-    normalizes to [0,1], and flattens into a 1D array of 4096 floats.
-    """
     processed_images = []
     for content in content_series:
         try:
@@ -56,15 +47,10 @@ def preprocessImageUdf(content_series: pd.Series) -> pd.Series:
     return pd.Series(processed_images)
 
 def preprocessData(df):
-    """Applies the distributed image preprocessing Pandas UDF."""
     return df.withColumn("image_array", preprocessImageUdf(col("content"))) \
              .drop("content")
 
 def buildFeatures(df, usePca=False, pcaK=100):
-    """
-    Creates feature vector compatible with MLlib.
-    Uses array_to_vector (if available) or UDF fallback, and StringIndexer for labels.
-    """
     try:
         from pyspark.ml.functions import array_to_vector
         df = df.withColumn("features_raw", array_to_vector(col("image_array")))
@@ -89,7 +75,6 @@ def buildFeatures(df, usePca=False, pcaK=100):
     return df
 
 def dataAnalysis(df):
-    """Analyzes and plots class distribution across the dataset."""
     print("Running Data Analysis: Class Distribution")
     class_counts = df.groupBy("label_str").count().orderBy("label_str").toPandas()
     
