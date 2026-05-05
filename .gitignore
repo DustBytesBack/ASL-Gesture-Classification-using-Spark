@@ -1,0 +1,19 @@
+# Virtual Environment
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Dataset (Ignored to prevent pushing large data files)
+asl_dataset/
+
+# Spark / Pipeline Generated Outputs
+processed_asl_dataset.parquet/
+.sparkStaging/
+
+# IDEs
+.vscode/
+.idea/
