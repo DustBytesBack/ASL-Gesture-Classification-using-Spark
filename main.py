@@ -77,7 +77,7 @@ def main():
         print(f"Saved {name} model locally to {model_path}")
         
         # Save Evaluation Metrics
-        saveEvaluationMetrics(acc, f1, prec, rec, modelName)
+        saveEvaluationMetrics(acc, f1, prec, rec, name)
         
     # Evaluate PCA impact briefly on LR
     print("\n--- Evaluating Impact of PCA (Logistic Regression) ---")
